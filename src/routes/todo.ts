@@ -2,33 +2,57 @@ import { Elysia } from "elysia";
 import { db } from "../db/client";
 import { todos } from "../db/schema";
 import jwt from "jsonwebtoken";
+import { eq } from "drizzle-orm";
 
-const auth = async (c, next) => {
-  const header = c.req.headers.get("authorization");
-  if (!header) return c.json({ error: "Missing token" }, 401);
+// --- Auth middleware ---
+const checkAuth = async (context: any) => {
+  const authHeader =
+    context.headers["authorization"] || context.headers["Authorization"];
 
-  const token = header.split(" ")[1];
+  if (!authHeader) {
+    context.set.status = 401;
+    throw new Error("Missing token");
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    context.set.status = 401;
+    throw new Error("Invalid token format");
+  }
+
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    c.set("user", decoded);
-    return next();
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+    context.user = decoded; // attach user info
   } catch {
-    return c.json({ error: "Invalid token" }, 401);
+    context.set.status = 401;
+    throw new Error("Invalid token");
   }
 };
 
+// --- Todo routes ---
 export const todoRoutes = new Elysia()
   // --- Create Todo ---
-  .post("/todos", auth, async (c) => {
-    const { title } = await c.body();
-    const user = c.get("user");
+  .post("/todos", async (context: any) => {
+    await checkAuth(context);
+    const body = await context.body as any;
+    const { title } = body;
 
-    const todo = await db.insert(todos).values({ title, userId: user.id }).returning();
+    // Use logged-in user ID from JWT
+    const todo = await db
+      .insert(todos)
+      .values({ title, userId: context.user.id })
+      .returning();
+
     return { todo: todo[0] };
   })
   // --- Get Todos ---
-  .get("/todos", auth, async (c) => {
-    const user = c.get("user");
-    const allTodos = await db.select().from(todos).where(todos.userId.eq(user.id));
+  .get("/todos", async (context: any) => {
+    await checkAuth(context);
+    // Get todos for the logged-in user
+    const allTodos = await db
+      .select()
+      .from(todos)
+      .where(eq(todos.userId, context.user.id));
+
     return { todos: allTodos };
   });

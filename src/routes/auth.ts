@@ -3,25 +3,34 @@ import { db } from "../db/client";
 import { users } from "../db/schema";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { eq } from "drizzle-orm";
 
 export const authRoutes = new Elysia()
   // --- Register ---
-  .post("/register", async (c) => {
-    const { username, password } = await c.body();
+  .post("/register", async (context) => {
+    const body = await context.body as any;
+    const { username, password } = body;
     const hash = await bcrypt.hash(password, 10);
 
     const user = await db.insert(users).values({ username, password: hash }).returning();
     return { message: "User created", user: user[0] };
   })
   // --- Login ---
-  .post("/login", async (c) => {
-    const { username, password } = await c.body();
-    const user = await db.select().from(users).where(users.username.eq(username));
+  .post("/login", async (context) => {
+    const body = await context.body as any;
+    const { username, password } = body;
+    const user = await db.select().from(users).where(eq(users.username, username));
 
-    if (!user[0]) return c.json({ error: "Invalid credentials" }, 401);
+    if (!user[0]) {
+      context.set.status = 401;
+      return { error: "Invalid credentials" };
+    }
 
     const match = await bcrypt.compare(password, user[0].password);
-    if (!match) return c.json({ error: "Invalid credentials" }, 401);
+    if (!match) {
+      context.set.status = 401;
+      return { error: "Invalid credentials" };
+    }
 
     const token = jwt.sign({ id: user[0].id }, process.env.JWT_SECRET!, { expiresIn: "1h" });
     return { token };
