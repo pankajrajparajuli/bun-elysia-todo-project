@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { db } from "../db/client";
 import { todos } from "../db/schema";
 import jwt from "jsonwebtoken";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 // --- Auth middleware ---
 const checkAuth = async (context: any) => {
@@ -52,5 +52,36 @@ export const todoRoutes = new Elysia({ prefix: "/api" })
       .from(todos)
       .where(eq(todos.userId, context.user.id));
     return { todos: allTodos };
+  })
+  // --- Update Todo ---
+  .patch("/todos/:id", async (context: any) => {
+    await checkAuth(context);
+    const id = context.params.id;
+    const body = await context.body as any;
+    const { title, completed } = body;
+
+    // Check if todo exists
+    const todo = await db
+      .select()
+      .from(todos)
+      .where(eq(todos.id, parseInt(id)));
+
+    if (todo.length === 0) {
+      context.set.status = 404;
+      return { error: "Todo not found" };
+    }
+
+    // Update todo
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title;
+    if (completed !== undefined) updateData.completed = completed;
+
+    const updated = await db
+      .update(todos)
+      .set(updateData)
+      .where(eq(todos.id, parseInt(id)))
+      .returning();
+
+    return { todo: updated[0] };
   });
 
