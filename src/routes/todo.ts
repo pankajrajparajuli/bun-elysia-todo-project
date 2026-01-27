@@ -6,8 +6,7 @@ import { eq } from "drizzle-orm";
 
 // --- Auth middleware ---
 const checkAuth = async (context: any) => {
-  const authHeader =
-    context.headers["authorization"] || context.headers["Authorization"];
+  const authHeader = context.headers.authorization || context.headers.Authorization;
 
   if (!authHeader) {
     context.set.status = 401;
