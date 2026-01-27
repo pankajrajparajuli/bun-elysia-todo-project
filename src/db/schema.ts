@@ -1,4 +1,4 @@
-import { pgTable, serial, text, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, boolean, integer } from "drizzle-orm/pg-core";
 
 // Users table
 export const users = pgTable("users", {
@@ -10,7 +10,7 @@ export const users = pgTable("users", {
 // Todos table
 export const todos = pgTable("todos", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").notNull(),
+  userId: integer("user_id").notNull(),
   title: text("title").notNull(),
   completed: boolean("completed").default(false)
 });

@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { db } from "../db/client";
 import { todos } from "../db/schema";
 import jwt from "jsonwebtoken";
@@ -29,7 +29,7 @@ const checkAuth = async (context: any) => {
 };
 
 // --- Todo routes ---
-export const todoRoutes = new Elysia()
+export const todoRoutes = new Elysia({ prefix: "/api" })
   // --- Create Todo ---
   .post("/todos", async (context: any) => {
     await checkAuth(context);
@@ -47,11 +47,10 @@ export const todoRoutes = new Elysia()
   // --- Get Todos ---
   .get("/todos", async (context: any) => {
     await checkAuth(context);
-    // Get todos for the logged-in user
     const allTodos = await db
       .select()
       .from(todos)
       .where(eq(todos.userId, context.user.id));
-
     return { todos: allTodos };
   });
+
