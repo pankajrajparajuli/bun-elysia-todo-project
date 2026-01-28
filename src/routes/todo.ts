@@ -34,12 +34,15 @@ export const todoRoutes = new Elysia({ prefix: "/api" })
   .post("/todos", async (context: any) => {
     await checkAuth(context);
     const body = await context.body as any;
-    const { title } = body;
+    const { title, description } = body;
+    
+    console.log("Body received:", body);
+    console.log("Title:", title, "Description:", description);
 
     // Use logged-in user ID from JWT
     const todo = await db
       .insert(todos)
-      .values({ title, userId: context.user.id })
+      .values({ title, description: description || null, userId: context.user.id })
       .returning();
 
     return { todo: todo[0] };
