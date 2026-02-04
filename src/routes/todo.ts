@@ -3,6 +3,7 @@ import { db } from "../db/client";
 import { todos } from "../db/schema";
 import jwt from "jsonwebtoken";
 import { eq, and } from "drizzle-orm";
+import { redis } from "../db/redis";
 
 // --- Auth middleware ---
 const checkAuth = async (context: any) => {
@@ -45,15 +46,33 @@ export const todoRoutes = new Elysia({ prefix: "/api" })
       .values({ title, description: description || null, userId: context.user.id })
       .returning();
 
+    // Invalidate cache
+    const cacheKey = `todos:${context.user.id}`;
+    await redis.del(cacheKey);
+
     return { todo: todo[0] };
   })
   // --- Get Todos ---
   .get("/todos", async (context: any) => {
     await checkAuth(context);
+    const userId = context.user.id;
+    const cacheKey = `todos:${userId}`;
+
+    // Check cache first
+    const cachedTodos = await redis.get(cacheKey);
+    if (cachedTodos) {
+      return { todos: JSON.parse(cachedTodos) };
+    }
+
+    // If not in cache, query database
     const allTodos = await db
       .select()
       .from(todos)
-      .where(eq(todos.userId, context.user.id));
+      .where(eq(todos.userId, userId));
+
+    // Cache the result for 5 minutes
+    await redis.setex(cacheKey, 300, JSON.stringify(allTodos));
+
     return { todos: allTodos };
   })
   // --- Update Todo ---
@@ -84,6 +103,10 @@ export const todoRoutes = new Elysia({ prefix: "/api" })
       .set(updateData)
       .where(eq(todos.id, parseInt(id)))
       .returning();
+
+    // Invalidate cache
+    const cacheKey = `todos:${context.user.id}`;
+    await redis.del(cacheKey);
 
     return { todo: updated[0] };
   });
