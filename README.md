@@ -11,27 +11,31 @@ Fully containerized with **Docker Compose**, including **Nginx** reverse proxy, 
   <img src="https://img.shields.io/badge/Monitoring-Prometheus/Grafana-orange?style=for-the-badge" alt="Monitoring" />
 </p>
 
-## Features
+## ✨ Features
 
-- ⚡ Blazing fast runtime with **Bun**
-- 🌸 Type-safe, lightweight API framework — **Elysia**
-- 🐘 PostgreSQL + **Drizzle ORM** (type-safe queries & migrations)
-- 🐳 Fully containerized with **Docker** & **Docker Compose**
-- 🔄 **Nginx** reverse proxy
-- 📊 **Prometheus** for application + system metrics
-- 📈 **Grafana** real-time dashboards & visualization
-- 🔧 Clean `.env`-based configuration
-- 🧹 Modular, scalable project structure
+- ⚡ **Blazing fast** runtime powered by **Bun**
+- 🌸 **Type-safe** & ergonomic API development with **Elysia**
+- 🐘 **PostgreSQL** + **Drizzle ORM** — fully type-safe queries & migrations
+- 🐳 **Production-ready** containerization with **Docker** & **Docker Compose**
+- 🔄 **Nginx** as a high-performance reverse proxy & static file serving
+- 📊 **Prometheus** metrics — application + system observability
+- 📈 **Grafana** dashboards — beautiful real-time visualization
+- 🔧 Clean **.env**-based configuration
+- 🧹 **Modular**, clean, and scalable project structure
 
-## Tech Stack
 
-- **Runtime**: Bun  
-- **Framework**: Elysia  
-- **ORM**: Drizzle ORM  
-- **Database**: PostgreSQL  
-- **Monitoring**: Prometheus + Grafana  
-- **Containerization**: Docker · Docker Compose  
-- **Reverse Proxy**: Nginx  
+## 🛠 Tech Stack
+
+| Layer              | Technology                     |
+|--------------------|--------------------------------|
+| Runtime            | Bun                            |
+| Web Framework      | Elysia                         |
+| ORM                | Drizzle ORM                    |
+| Database           | PostgreSQL                     |
+| Reverse Proxy      | Nginx                          |
+| Monitoring         | Prometheus + Grafana           |
+| Containerization   | Docker · Docker Compose        |
+| Configuration      | dotenv                         |
 
 ## Quick Start
 
