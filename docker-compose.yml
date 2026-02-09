@@ -1,6 +1,29 @@
 version: "3.9"
 
 services:
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-buntodo
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - default
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-buntodo
+    ports:
+      - "3001:3000" # Access at localhost:3001
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - default
+
   # ---------- Postgres ----------
   postgres-buntodo:
     image: postgres:14
@@ -56,3 +79,5 @@ services:
 volumes:
   buntodo_pgdata:
   buntodo_redisdata:
+  prometheus_data-buntodo:   # Persistence for metrics
+  grafana_data-buntodo:      # Persistence for Grafana dashboards

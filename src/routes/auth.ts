@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { eq } from "drizzle-orm";
 
 export const authRoutes = new Elysia({ prefix: "/api" })
+  
   // --- Register ---
   .post("/register", async (context) => {
     const body = await context.body as any;
